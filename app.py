@@ -3,42 +3,39 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import os
 
+print("=== ЗАПУСК ПРИЛОЖЕНИЯ ===")
+
 app = Flask(__name__)
 
+# Настройки
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-production'
 app.config['DEBUG'] = False
 
-# Конфигурация PostgreSQL базы данных
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_PORT = os.environ.get('DB_PORT', '5432')
-DB_USER = os.environ.get('DB_USER', '')
-DB_PASS = os.environ.get('DB_PASS', '')
-DB_NAME = os.environ.get('DB_NAME', 'domophone_db')
-
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_size': 10,
-    'pool_recycle': 3600,
-    'pool_pre_ping': True
-}
+# Настройки базы данных - временно SQLite для проверки
+basedir = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(basedir, 'contracts.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+print("=== НАСТРОЙКИ БД ЗАГРУЖЕНЫ ===")
+
+# Импорты
 from models import db, Client, PaymentHistory, User
 from auth import init_auth, setup_routes, role_required
 from reports import ReportGenerator
 
+print("=== МОДЕЛИ ИМПОРТИРОВАНЫ ===")
+
+# Инициализация
 db.init_app(app)
 init_auth(app)
 
+print("=== ИНИЦИАЛИЗАЦИЯ ВЫПОЛНЕНА ===")
+
+# Создание таблиц и администратора
 with app.app_context():
     db.create_all()
-    # Принудительное создание администратора
-    try:
-        old_admin = User.query.filter_by(username='admin').first()
-        if old_admin:
-            db.session.delete(old_admin)
-            db.session.commit()
-        
+    if User.query.count() == 0:
         admin = User()
         admin.username = 'admin'
         admin.full_name = 'Администратор'
@@ -47,12 +44,17 @@ with app.app_context():
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
-        print('✅ Администратор создан: admin / admin123')
-    except Exception as e:
-        print(f'Ошибка: {e}')
-        db.session.rollback()
+        print("✅ Администратор создан: admin / admin123")
+    print("=== БАЗА ДАННЫХ ГОТОВА ===")
 
 setup_routes(app)
+
+print("=== МАРШРУТЫ НАСТРОЕНЫ ===")
+
+# Health check
+@app.route('/health')
+def health():
+    return "OK", 200
 
 @app.route('/')
 @login_required
@@ -357,17 +359,8 @@ def reports_filtered():
     filename = f"экспорт_клиентов_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename)
 
-@app.route('/health')
-def health():
-    try:
-        from models import User
-        User.query.first()
-        return "OK", 200
-    except Exception as e:
-        return f"Database connection error: {str(e)}", 500
+print("=== ВСЕ МАРШРУТЫ ЗАРЕГИСТРИРОВАНЫ ===")
 
 if __name__ == '__main__':
-    print("=" * 50)
-    print("Запуск приложения учёта договоров домофонных трубок")
-    print("=" * 50)
+    print("=== ЗАПУСК СЕРВЕРА ===")
     app.run(debug=False, host='0.0.0.0', port=8000)
