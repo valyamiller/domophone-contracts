@@ -11,10 +11,23 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-production'
 app.config['DEBUG'] = False
 
-# Настройки базы данных - временно SQLite для проверки
-basedir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(basedir, 'contracts.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+# Настройки базы данных - PostgreSQL (Timeweb)
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', '5432')
+DB_USER = os.environ.get('DB_USER', '')
+DB_PASS = os.environ.get('DB_PASS', '')
+DB_NAME = os.environ.get('DB_NAME', 'domophone_db')
+
+# Если нет переменных окружения - используем SQLite
+if DB_USER and DB_PASS:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    print("=== ИСПОЛЬЗУЕТСЯ POSTGRESQL ===")
+else:
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    db_path = os.path.join(basedir, 'contracts.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    print("=== ИСПОЛЬЗУЕТСЯ SQLITE ===")
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 print("=== НАСТРОЙКИ БД ЗАГРУЖЕНЫ ===")
