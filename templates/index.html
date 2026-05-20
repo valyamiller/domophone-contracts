@@ -31,18 +31,6 @@
         </thead>
         <tbody>
             {% for client in clients %}
-            <td>
-    <a href="{{ url_for('view_contract', client_id=client.id) }}" class="btn-small btn-contract">Договор</a>
-    <a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a>
-    <a href="{{ url_for('client_history', client_id=client.id) }}" class="btn-small btn-info">История</a>
-    {% if current_user.has_role('admin') %}
-        <a href="{{ url_for('delete_client', client_id=client.id) }}" 
-           class="btn-small btn-danger" 
-           onclick="return confirm('Вы уверены? Все данные клиента и история платежей будут удалены безвозвратно!')">
-            🗑️ Удалить
-        </a>
-    {% endif %}
-</td>
             <tr class="{% if client.days_until_expiry() <= 7 %}status-danger{% elif client.days_until_expiry() <= 30 %}status-warning{% endif %}">
                 <td><strong>{{ client.contract_number }}</strong></td>
                 <td><span class="account-badge">{{ client.personal_account }}</span></td>
@@ -68,10 +56,17 @@
                         <span class="badge badge-success">Активен</span>
                     {% endif %}
                 </td>
-                <td>
+                <td class="actions">
                     <a href="{{ url_for('view_contract', client_id=client.id) }}" class="btn-small btn-contract">Договор</a>
                     <a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a>
                     <a href="{{ url_for('client_history', client_id=client.id) }}" class="btn-small btn-info">История</a>
+                    {% if current_user.has_role('admin') %}
+                        <a href="{{ url_for('delete_client', client_id=client.id) }}" 
+                           class="btn-small btn-danger" 
+                           onclick="return confirm('Удалить клиента {{ client.full_name }}? Данные будут удалены безвозвратно!')">
+                            Удалить
+                        </a>
+                    {% endif %}
                 </td>
             </tr>
             {% else %}
@@ -82,13 +77,4 @@
         </tbody>
     </table>
 </div>
-
-<style>
-    .btn-contract {
-        background-color: #8e44ad;
-    }
-    .btn-contract:hover {
-        background-color: #6c3483;
-    }
-</style>
 {% endblock %}

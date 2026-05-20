@@ -467,3 +467,42 @@ input[type="number"] {
 .btn-danger:hover {
     background-color: #c0392b;
 }
+/* Кнопки действий */
+.actions {
+    white-space: nowrap;
+    min-width: 250px;
+}
+
+.btn-small {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 2px;
+    font-size: 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-contract {
+    background-color: #8e44ad;
+}
+
+.btn-contract:hover {
+    background-color: #6c3483;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
