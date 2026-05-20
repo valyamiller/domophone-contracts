@@ -359,7 +359,12 @@ def reports_filtered():
 
 @app.route('/health')
 def health():
-    return "OK", 200
+    try:
+        from models import User
+        User.query.first()
+        return "OK", 200
+    except Exception as e:
+        return f"Database connection error: {str(e)}", 500
 
 if __name__ == '__main__':
     print("=" * 50)
