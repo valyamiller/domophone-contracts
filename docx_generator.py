@@ -1,188 +1,151 @@
 import os
 from datetime import datetime
-from docx import Document
-from docx.shared import Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 def generate_contract(client, amount=480):
-    """
-    Генерация договора на основе шаблона
-    """
-    template_path = os.path.join(os.path.dirname(__file__), 'contract_template.docx')
+    """Генерация договора в формате HTML"""
     
-    # Если шаблона нет, создаём простой договор на лету
-    if not os.path.exists(template_path):
-        return generate_simple_contract(client, amount)
-    
-    # Загружаем шаблон
-    doc = Document(template_path)
-    
-    # Форматируем даты
     current_date = datetime.now().strftime('%d.%m.%Y')
     start_date = client.contract_start.strftime('%d.%m.%Y')
     end_date = client.contract_end.strftime('%d.%m.%Y')
     
-    # Данные для подстановки
-    replacements = {
-        '{contract_number}': str(client.contract_number),
-        '{personal_account}': str(client.personal_account),
-        '{full_name}': client.full_name,
-        '{microdistrict}': client.microdistrict,
-        '{house}': client.house,
-        '{apartment}': client.apartment,
-        '{phone}': client.phone,
-        '{start_date}': start_date,
-        '{end_date}': end_date,
-        '{current_date}': current_date,
-        '{amount}': str(amount),
-        '{amount_text}': number_to_text(amount),
-        '{city}': 'Нефтеюганск',
-        '{year}': str(datetime.now().year)
-    }
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Договор №{client.contract_number}</title>
+        <style>
+            body {{
+                font-family: 'Times New Roman', Times, serif;
+                margin: 50px;
+                font-size: 14px;
+                line-height: 1.4;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+            }}
+            .title {{
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }}
+            .subtitle {{
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }}
+            .contract-number {{
+                text-align: right;
+                margin-bottom: 20px;
+            }}
+            .content {{
+                margin-top: 20px;
+            }}
+            .signatures {{
+                margin-top: 50px;
+                display: flex;
+                justify-content: space-between;
+            }}
+            .signature-block {{
+                width: 45%;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }}
+            td, th {{
+                border: 1px solid black;
+                padding: 8px;
+                vertical-align: top;
+            }}
+            .underline {{
+                text-decoration: underline;
+            }}
+            .bold {{
+                font-weight: bold;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="contract-number">
+            <strong>Договор № {client.contract_number} / {client.personal_account}</strong>
+        </div>
+        
+        <div class="header">
+            <div class="title">ДОГОВОР</div>
+            <div class="subtitle">на монтаж и обслуживание системы переговорно-замкового устройства (ПЗУ)</div>
+        </div>
+        
+        <p>г. Нефтеюганск                    {current_date}</p>
+        
+        <p><strong>Общество с ограниченной ответственностью «Интерком»</strong>, именуемое в дальнейшем «Исполнитель», в лице генерального директора Шибаева Михаила Анатольевича, действующего на основании Устава, с одной стороны, и <strong>{client.full_name}</strong>, именуемый в дальнейшем «Заказчик», с другой стороны, заключили настоящий договор о нижеследующем:</p>
+        
+        <h3>1. ПРЕДМЕТ ДОГОВОРА</h3>
+        <p>1.1. «Заказчик» поручает, а «Исполнитель» принимает на себя обслуживание ПЗУ по адресу:</p>
+        <p><strong>мкр-н {client.microdistrict}, дом № {client.house}, кв. № {client.apartment}</strong></p>
+        <p>1.2. Обслуживание ПЗУ включает в себя поддержание работоспособности линии, замену вышедшего из строя оборудования, проведение профилактических осмотров, выполнение заявок.</p>
+        
+        <h3>2. СРОК ДЕЙСТВИЯ ДОГОВОРА</h3>
+        <p>2.1. Договор на обслуживание системы ПЗУ заключается на срок с <strong>{start_date}</strong> по <strong>{end_date}</strong>.</p>
+        <p>2.2. По истечении срока, с согласия обеих сторон, договор продлевается автоматически.</p>
+        
+        <h3>3. СТОИМОСТЬ И ПОРЯДОК РАСЧЕТОВ</h3>
+        <p>3.1. Плата за обслуживание составляет <strong>{amount} (четыреста восемьдесят) рублей 00 коп в год</strong>.</p>
+        <p>3.2. Оплата производится авансом раз в год.</p>
+        
+        <h3>4. ПРАВА И ОБЯЗАННОСТИ СТОРОН</h3>
+        <p>4.1. «Заказчик» обязуется оплатить услуги по обслуживанию ПЗУ авансом раз в год.</p>
+        <p>4.2. «Исполнитель» обязуется выполнять заявки по ремонту в течение 3-х дней.</p>
+        
+        <h3>5. АДРЕСА И РЕКВИЗИТЫ СТОРОН</h3>
+        
+        <table>
+            <tr>
+                <td width="50%"><strong>Исполнитель:</strong></td>
+                <td width="50%"><strong>Заказчик:</strong></td>
+            </tr>
+            <tr>
+                <td>ООО «Интерком»<br>
+                628309, г. Нефтеюганск, ул. Мира, 2а<br>
+                помещение 3, каб. 18<br>
+                Тел.: (3463) 200-800<br>
+                ИНН/КПП 8604045295/860401001<br>
+                р/с 40702810602500118844<br>
+                Банк: ООО "Банк Точка"<br>
+                к/с 30101810745374525104<br>
+                БИК 044525104</td>
+                <td>{client.full_name}<br>
+                Адрес: мкр-н {client.microdistrict}, дом {client.house}, кв. {client.apartment}<br>
+                Телефон: {client.phone}<br>
+                &nbsp;</td>
+            </tr>
+        </table>
+        
+        <div class="signatures">
+            <div class="signature-block">
+                От Исполнителя:<br><br>
+                ______________ / Шибаев М.А. /
+            </div>
+            <div class="signature-block">
+                От Заказчика:<br><br>
+                ______________ / _______________ /
+            </div>
+        </div>
+    </body>
+    </html>
+    """
     
-    # Заменяем текст во всех параграфах
-    for paragraph in doc.paragraphs:
-        for key, value in replacements.items():
-            if key in paragraph.text:
-                paragraph.text = paragraph.text.replace(key, value)
-    
-    # Заменяем текст в таблицах
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for key, value in replacements.items():
-                    if key in cell.text:
-                        cell.text = cell.text.replace(key, value)
-    
-    # Сохраняем договор
+    # Сохраняем HTML файл
     contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
     if not os.path.exists(contracts_dir):
         os.makedirs(contracts_dir)
     
-    filename = f"Договор_{client.contract_number}_{client.personal_account}_{client.full_name.replace(' ', '_')}.docx"
+    filename = f"Договор_{client.contract_number}_{client.personal_account}_{client.full_name.replace(' ', '_')}.html"
     filepath = os.path.join(contracts_dir, filename)
     
-    doc.save(filepath)
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(html_content)
     
     return filepath, filename
-
-def generate_simple_contract(client, amount=480):
-    """
-    Создание простого договора если нет шаблона
-    """
-    from docx import Document
-    from docx.shared import Pt
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    
-    doc = Document()
-    
-    # Заголовок
-    title = doc.add_heading('ДОГОВОР', 0)
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    
-    # Номер договора
-    doc.add_paragraph(f'№ {client.contract_number} / {client.personal_account}')
-    doc.add_paragraph()
-    
-    # Дата
-    current_date = datetime.now().strftime('%d.%m.%Y')
-    doc.add_paragraph(f'г. Нефтеюганск                    {current_date}')
-    doc.add_paragraph()
-    
-    # Стороны
-    doc.add_paragraph('Общество с ограниченной ответственностью «Интерком», именуемое в дальнейшем «Исполнитель»,')
-    doc.add_paragraph(f'и {client.full_name}, именуемый в дальнейшем «Заказчик», заключили настоящий договор о нижеследующем:')
-    doc.add_paragraph()
-    
-    # Предмет договора
-    doc.add_heading('1. ПРЕДМЕТ ДОГОВОРА', level=1)
-    doc.add_paragraph(f'1.1. «Заказчик» поручает, а «Исполнитель» принимает на себя обслуживание ПЗУ по адресу:')
-    doc.add_paragraph(f'мкр-н {client.microdistrict}, дом № {client.house}, кв. № {client.apartment}')
-    doc.add_paragraph()
-    
-    # Срок действия
-    doc.add_heading('2. СРОК ДЕЙСТВИЯ ДОГОВОРА', level=1)
-    start_date = client.contract_start.strftime('%d.%m.%Y')
-    end_date = client.contract_end.strftime('%d.%m.%Y')
-    doc.add_paragraph(f'2.1. Договор на обслуживание системы ПЗУ заключается на срок с {start_date} по {end_date}')
-    doc.add_paragraph('2.2. По истечении срока, с согласия обеих сторон, договор продлевается автоматически.')
-    doc.add_paragraph()
-    
-    # Стоимость
-    doc.add_heading('3. СТОИМОСТЬ И ПОРЯДОК РАСЧЕТОВ', level=1)
-    doc.add_paragraph(f'3.1. Плата за обслуживание составляет {amount} ({number_to_text(amount)}) рублей в год.')
-    doc.add_paragraph('3.2. Оплата производится авансом раз в год.')
-    doc.add_paragraph()
-    
-    # Права и обязанности
-    doc.add_heading('4. ПРАВА И ОБЯЗАННОСТИ СТОРОН', level=1)
-    doc.add_paragraph('4.1. «Заказчик» обязуется оплатить услуги по обслуживанию ПЗУ авансом раз в год.')
-    doc.add_paragraph('4.2. «Исполнитель» обязуется выполнять заявки по ремонту в течение 3-х дней.')
-    doc.add_paragraph()
-    
-    # Адреса и реквизиты
-    doc.add_heading('ЮРИДИЧЕСКИЕ АДРЕСА СТОРОН', level=1)
-    doc.add_paragraph('Исполнитель:')
-    doc.add_paragraph('ООО «Интерком»')
-    doc.add_paragraph('628309, г. Нефтеюганск, ул. Мира, 2а, помещение 3, каб. 18')
-    doc.add_paragraph('Тел.: (3463) 200-800')
-    doc.add_paragraph('ИНН/КПП 8604045295/860401001')
-    doc.add_paragraph()
-    doc.add_paragraph('Заказчик:')
-    doc.add_paragraph(f'{client.full_name}')
-    doc.add_paragraph(f'Адрес: мкр-н {client.microdistrict}, дом {client.house}, кв. {client.apartment}')
-    doc.add_paragraph(f'Телефон: {client.phone}')
-    doc.add_paragraph()
-    
-    # Подписи
-    doc.add_paragraph()
-    doc.add_paragraph('От Исполнителя:                    От Заказчика:')
-    doc.add_paragraph('__________________                 __________________')
-    doc.add_paragraph('/ Шибаев М.А. /                    / _______________ /')
-    
-    # Сохраняем
-    contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
-    if not os.path.exists(contracts_dir):
-        os.makedirs(contracts_dir)
-    
-    filename = f"Договор_{client.contract_number}_{client.personal_account}_{client.full_name.replace(' ', '_')}.docx"
-    filepath = os.path.join(contracts_dir, filename)
-    
-    doc.save(filepath)
-    
-    return filepath, filename
-
-def number_to_text(n):
-    """Преобразование числа в текст для суммы прописью"""
-    if n == 0:
-        return 'ноль'
-    
-    numbers_1_19 = [
-        '', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять',
-        'десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 'пятнадцать',
-        'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'
-    ]
-    
-    tens = [
-        '', '', 'двадцать', 'тридцать', 'сорок', 'пятьдесят',
-        'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'
-    ]
-    
-    hundreds = [
-        '', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот',
-        'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'
-    ]
-    
-    if n < 20:
-        return numbers_1_19[n]
-    elif n < 100:
-        return tens[n // 10] + (' ' + numbers_1_19[n % 10] if n % 10 != 0 else '')
-    elif n < 1000:
-        return hundreds[n // 100] + (' ' + number_to_text(n % 100) if n % 100 != 0 else '')
-    else:
-        thousands = n // 1000
-        remainder = n % 1000
-        thousand_text = number_to_text(thousands) + ' тысяч' + ('и' if 2 <= thousands % 10 <= 4 else '')
-        if remainder:
-            thousand_text += ' ' + number_to_text(remainder)
-        return thousand_text

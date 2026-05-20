@@ -70,10 +70,11 @@ class User(UserMixin, db.Model):
             'last_login': self.last_login.strftime('%d.%m.%Y %H:%M') if self.last_login else 'Никогда'
         }
 
+
 class Client(db.Model):
     __tablename__ = 'clients'
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     contract_number = db.Column(db.Integer, unique=True, nullable=False)
     personal_account = db.Column(db.String(20), unique=True, nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
@@ -100,7 +101,6 @@ class Client(db.Model):
     
     @staticmethod
     def generate_personal_account():
-        """Генерация уникального лицевого счёта"""
         while True:
             account = '1' + ''.join([str(random.randint(0, 9)) for _ in range(9)])
             if not Client.query.filter_by(personal_account=account).first():
@@ -108,11 +108,9 @@ class Client(db.Model):
     
     @staticmethod
     def generate_contract_number():
-        """Генерация следующего номера договора"""
-        last_client = Client.query.order_by(Client.contract_number.desc()).first()
-        if last_client and last_client.contract_number:
-            return last_client.contract_number + 1
-        return 1
+        from sqlalchemy import func
+        max_number = db.session.query(func.max(Client.contract_number)).scalar()
+        return (max_number or 0) + 1
     
     def calculate_end_date(self, start_date):
         return start_date + relativedelta(months=12)
@@ -141,9 +139,6 @@ class Client(db.Model):
             'personal_account': self.personal_account,
             'full_name': self.full_name,
             'full_address': self.full_address,
-            'microdistrict': self.microdistrict,
-            'house': self.house,
-            'apartment': self.apartment,
             'phone': self.phone,
             'contract_start': self.contract_start.strftime('%d.%m.%Y'),
             'contract_end': self.contract_end.strftime('%d.%m.%Y'),
@@ -151,6 +146,7 @@ class Client(db.Model):
             'creator_name': self.creator.full_name if self.creator else 'Неизвестно',
             'created_at': self.created_at.strftime('%d.%m.%Y %H:%M') if self.created_at else ''
         }
+
 
 class PaymentHistory(db.Model):
     __tablename__ = 'payment_history'
