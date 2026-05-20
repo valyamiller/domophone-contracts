@@ -367,6 +367,31 @@ def reports_filtered():
     
     filename = f"экспорт_клиентов_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename)
+@app.route('/delete_client/<int:client_id>')
+@login_required
+@role_required('admin')
+def delete_client(client_id):
+    """Удаление клиента (только для администраторов)"""
+    client = Client.query.get_or_404(client_id)
+    
+    # Сохраняем имя для сообщения
+    client_name = client.full_name
+    client_number = client.contract_number
+    
+    try:
+        # Удаляем историю платежей
+        PaymentHistory.query.filter_by(client_id=client.id).delete()
+        
+        # Удаляем клиента
+        db.session.delete(client)
+        db.session.commit()
+        
+        flash(f'✅ Клиент {client_name} (договор №{client_number}) удалён', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Ошибка при удалении: {str(e)}', 'danger')
+    
+    return redirect(url_for('index'))
 
 print("=== ВСЕ МАРШРУТЫ ЗАРЕГИСТРИРОВАНЫ ===")
 
