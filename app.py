@@ -3,35 +3,32 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import os
 
-# Создаём приложение
 app = Flask(__name__)
 
-# Настройки приложения
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-production'
 app.config['DEBUG'] = False
 
-# Путь к базе данных
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, 'contracts.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Импорты после создания app
 from models import db, Client, PaymentHistory, User
 from auth import init_auth, setup_routes, role_required
 from reports import ReportGenerator
 
-# Инициализация базы данных
 db.init_app(app)
-
-# Инициализация авторизации
 init_auth(app)
 
-# Создание таблиц и автоматическое создание администратора
 with app.app_context():
     db.create_all()
-    # Создаём первого администратора, если база пустая
-    if User.query.count() == 0:
+    # Принудительное создание администратора
+    try:
+        old_admin = User.query.filter_by(username='admin').first()
+        if old_admin:
+            db.session.delete(old_admin)
+            db.session.commit()
+        
         admin = User()
         admin.username = 'admin'
         admin.full_name = 'Администратор'
@@ -40,12 +37,12 @@ with app.app_context():
         admin.set_password('admin123')
         db.session.add(admin)
         db.session.commit()
-        print('✅ Первый администратор создан: admin / admin123')
+        print('✅ Администратор создан: admin / admin123')
+    except Exception as e:
+        print(f'Ошибка: {e}')
+        db.session.rollback()
 
-# Настройка маршрутов авторизации
 setup_routes(app)
-
-# ============== ОСНОВНЫЕ МАРШРУТЫ ==============
 
 @app.route('/')
 @login_required
@@ -268,8 +265,6 @@ def search():
     
     return render_template('search.html', clients=clients, search_query=search_query, search_field=search_field)
 
-# ============== ОТЧЁТЫ ==============
-
 @app.route('/reports')
 @login_required
 def reports():
@@ -360,7 +355,4 @@ if __name__ == '__main__':
     print("=" * 50)
     print("Запуск приложения учёта договоров домофонных трубок")
     print("=" * 50)
-    print(f"Режим отладки: {app.debug}")
-    print("Приложение доступно по адресу: http://127.0.0.1:5000")
-    print("=" * 50)
-    app.run(debug=app.debug, host='127.0.0.1', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=8000)
