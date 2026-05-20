@@ -429,6 +429,9 @@ def reports_filtered():
     
     filename = f"экспорт_клиентов_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename)
+@app.route('/health')
+def health():
+    return "OK", 200
 
 if __name__ == '__main__':
     print("=" * 50)
