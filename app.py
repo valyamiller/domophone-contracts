@@ -308,6 +308,28 @@ def reports_export_all():
     
     filename = f"все_клиенты_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename)
+@app.route('/setup')
+def setup():
+    from models import User
+    from flask import request
+    
+    # Проверяем, есть ли уже администратор
+    admin = User.query.filter_by(role='admin').first()
+    if admin:
+        return f"Администратор уже существует: {admin.username}"
+    
+    # Создаём администратора
+    admin = User()
+    admin.username = 'admin'
+    admin.full_name = 'Администратор'
+    admin.role = 'admin'
+    admin.is_active = True
+    admin.set_password('admin123')
+    
+    db.session.add(admin)
+    db.session.commit()
+    
+    return "✅ Администратор создан!<br>Логин: admin<br>Пароль: admin123<br><br><a href='/login'>Перейти к входу</a>"
 
 @app.route('/reports/filtered')
 @login_required
