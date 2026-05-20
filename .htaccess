@@ -1,0 +1,11 @@
+# Включение перезаписи URL
+RewriteEngine On
+
+# Перенаправление на WSGI
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ /wsgi.py/$1 [QSA,L]
+
+# Настройки для статики
+<FilesMatch "\.(css|js|jpg|png|gif|ico)$">
+    Header set Cache-Control "max-age=2592000, public"
+</FilesMatch>

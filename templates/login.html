@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Авторизация</h2>
+            <p>Учёт договоров домофонных трубок</p>
+        </div>
+        
+        <form method="POST" class="login-form">
+            <div class="form-group-login">
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="username" placeholder="Введите ваш логин" required autofocus>
+            </div>
+            
+            <div class="form-group-login">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" placeholder="Введите пароль" required>
+            </div>
+            
+            <button type="submit" class="btn-login">Войти</button>
+        </form>
+        
+        <div class="login-footer">
+            <p>© 2024 Система учёта договоров</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+        padding: 20px;
+    }
+    
+    .login-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .login-header {
+        background: #2c3e50;
+        color: white;
+        padding: 30px;
+        text-align: center;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .login-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .login-header p {
+        margin: 8px 0 0 0;
+        font-size: 13px;
+        opacity: 0.8;
+    }
+    
+    .login-form {
+        padding: 30px;
+    }
+    
+    .form-group-login {
+        margin-bottom: 20px;
+    }
+    
+    .form-group-login label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+    
+    .form-group-login input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group-login input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    
+    .form-group-login input::placeholder {
+        color: #bbb;
+    }
+    
+    .btn-login {
+        width: 100%;
+        padding: 12px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-top: 10px;
+    }
+    
+    .btn-login:hover {
+        background: #2980b9;
+    }
+    
+    .login-footer {
+        background: #f8f9fa;
+        padding: 15px;
+        text-align: center;
+        border-top: 1px solid #ecf0f1;
+        border-radius: 0 0 12px 12px;
+    }
+    
+    .login-footer p {
+        margin: 0;
+        font-size: 11px;
+        color: #95a5a6;
+    }
+</style>
+{% endblock %}

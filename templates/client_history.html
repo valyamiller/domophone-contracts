@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>История оплат</h2>
+
+<div class="client-info">
+    <h3>{{ client.full_name }}</h3>
+    <p>Квартира: {{ client.apartment }} | Телефон: {{ client.phone }}</p>
+    <p>Текущий договор: {{ client.contract_start.strftime('%d.%m.%Y') }} - {{ client.contract_end.strftime('%d.%m.%Y') }}</p>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Дата оплаты</th>
+                <th>Сумма</th>
+                <th>Период с</th>
+                <th>Период по</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.payment_date.strftime('%d.%m.%Y') }}</td>
+                <td>{{ payment.payment_amount }} руб.</td>
+                <td>{{ payment.period_from.strftime('%d.%m.%Y') }}</td>
+                <td>{{ payment.period_to.strftime('%d.%m.%Y') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4">Нет записей об оплатах</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{{ url_for('index') }}" class="btn">Назад</a>
+{% endblock %}

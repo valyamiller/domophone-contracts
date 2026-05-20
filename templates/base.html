@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учёт договоров домофонных трубок</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>Учёт договоров домофонных трубок</h1>
+                {% if current_user.is_authenticated %}
+                    <div class="user-info">
+                        <span class="user-name">{{ current_user.full_name }}</span>
+                        <span class="user-role role-{{ current_user.role }}">{{ current_user.role }}</span>
+                        <a href="{{ url_for('logout') }}" class="logout-btn">Выйти</a>
+                    </div>
+                {% endif %}
+            </div>
+            {% if current_user.is_authenticated %}
+            <nav>
+    <a href="{{ url_for('index') }}">Главная</a>
+    <a href="{{ url_for('add_client') }}">Добавить клиента</a>
+    <a href="{{ url_for('notifications') }}">Оповещения</a>
+    <a href="{{ url_for('search') }}">Расширенный поиск</a>
+    <a href="{{ url_for('reports') }}" class="reports-link">Отчёты</a>
+    {% if current_user.has_role('admin') %}
+        <a href="{{ url_for('users_list') }}" class="admin-link">Управление пользователями</a>
+    {% endif %}
+</nav>
+            {% endif %}
+        </header>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+        
+        <footer>
+            <p>© 2024 Учёт договоров домофонных трубок</p>
+        </footer>
+    </div>
+</body>
+</html>

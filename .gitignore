@@ -1,0 +1,36 @@
+# База данных
+*.db
+*.sqlite
+*.sqlite3
+
+# Кэш Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Виртуальное окружение
+venv/
+env/
+ENV/
+.venv/
+
+# Сгенерированные договоры
+contracts/
+*.docx
+
+# Файлы IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Логи
+*.log
+
+# Переменные окружения
+.env
+.secrets
+
+# Файлы настроек (опционально)
+config.local.py

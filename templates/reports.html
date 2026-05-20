@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Отчёты и аналитика</h2>
+
+<div class="reports-container">
+    <div class="report-card">
+        <div class="report-icon">📊</div>
+        <h3>Истекающие договоры</h3>
+        <p>Отчёт по договорам, которые истекают в ближайшие 30 дней</p>
+        <div class="report-actions">
+            <a href="{{ url_for('reports_expiring') }}" class="btn btn-download">Скачать отчёт (Excel)</a>
+        </div>
+    </div>
+
+    <div class="report-card">
+        <div class="report-icon">📈</div>
+        <h3>Месячная статистика</h3>
+        <p>Общая статистика: количество договоров, распределение по месяцам</p>
+        <div class="report-actions">
+            <a href="{{ url_for('reports_monthly') }}" class="btn btn-download">Скачать статистику (Excel)</a>
+        </div>
+    </div>
+
+    <div class="report-card">
+        <div class="report-icon">📋</div>
+        <h3>Экспорт всех клиентов</h3>
+        <p>Полная выгрузка базы клиентов в Excel</p>
+        <div class="report-actions">
+            <a href="{{ url_for('reports_export_all') }}" class="btn btn-download">Экспортировать всех (Excel)</a>
+        </div>
+    </div>
+
+    <div class="report-card">
+        <div class="report-icon">🔍</div>
+        <h3>Фильтрованный экспорт</h3>
+        <p>Экспорт с фильтрацией по поиску и статусу</p>
+        <form method="GET" action="{{ url_for('reports_filtered') }}" class="filter-form">
+            <div class="form-group">
+                <input type="text" name="search" placeholder="Поиск по ЛС, ФИО, адресу..." class="search-input">
+            </div>
+            <div class="form-group">
+                <select name="status" class="status-select">
+                    <option value="all">Все договоры</option>
+                    <option value="active">Только активные</option>
+                    <option value="expiring_30">Истекают через 30 дней</option>
+                    <option value="expiring_7">Истекают через 7 дней</option>
+                    <option value="expired">Истекшие</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-download">Экспортировать с фильтрами</button>
+        </form>
+    </div>
+</div>
+
+<div class="info-box">
+    <h4>Информация о форматах:</h4>
+    <ul>
+        <li>Все отчёты генерируются в формате Microsoft Excel (XLSX)</li>
+        <li>Файлы автоматически именуются с датой и временем создания</li>
+        <li>Отчёты содержат форматирование: заголовки, границы, автоширину колонок</li>
+        <li>В зависимости от вашей роли, отчёты могут содержать только ваши договоры или все</li>
+    </ul>
+</div>
+
+<style>
+    .reports-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    
+    .report-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    .report-card h3 {
+        margin: 0 0 12px 0;
+        color: #2c3e50;
+        font-size: 20px;
+    }
+    
+    .report-card p {
+        color: #7f8c8d;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    
+    .report-actions {
+        margin-top: 16px;
+    }
+    
+    .btn-download {
+        background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+        display: inline-block;
+        width: auto;
+        text-align: center;
+    }
+    
+    .btn-download:hover {
+        background: linear-gradient(135deg, #219a52 0%, #1e8449 100%);
+        transform: translateY(-1px);
+    }
+    
+    .filter-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .filter-form .search-input,
+    .filter-form .status-select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .filter-form .btn {
+        margin-top: 8px;
+    }
+    
+    @media (max-width: 768px) {
+        .reports-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

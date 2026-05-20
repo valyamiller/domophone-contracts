@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Оповещения об окончании договоров</h2>
+
+{% if expired %}
+<div class="notification-section">
+    <h3 class="danger">Истекшие договоры</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Клиент</th><th>Адрес</th><th>Телефон</th><th>Дата окончания</th><th>Действие</th></tr>
+            </thead>
+            <tbody>
+                {% for client in expired %}
+                <tr>
+                    <td>{{ client.full_name }}</td>
+                    <td>{{ client.full_address }}</td>
+                    <td>{{ client.phone }}</td>
+                    <td>{{ client.contract_end.strftime('%d.%m.%Y') }}</td>
+                    <td><a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if notifications_7 %}
+<div class="notification-section">
+    <h3 class="danger">Осталось 7 дней и менее</h3>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Клиент</th><th>Адрес</th><th>Телефон</th><th>Дней до конца</th><th>Действие</th></tr></thead>
+            <tbody>
+                {% for client in notifications_7 %}
+                <tr>
+                    <td>{{ client.full_name }}</td>
+                    <td>{{ client.full_address }}</td>
+                    <td>{{ client.phone }}</td>
+                    <td>{{ client.days_until_expiry() }}</td>
+                    <td><a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if notifications_14 %}
+<div class="notification-section">
+    <h3 class="warning">Осталось 14 дней</h3>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Клиент</th><th>Адрес</th><th>Телефон</th><th>Дней до конца</th><th>Действие</th></tr></thead>
+            <tbody>
+                {% for client in notifications_14 %}
+                <tr>
+                    <td>{{ client.full_name }}</td>
+                    <td>{{ client.full_address }}</td>
+                    <td>{{ client.phone }}</td>
+                    <td>{{ client.days_until_expiry() }}</td>
+                    <td><a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if notifications_30 %}
+<div class="notification-section">
+    <h3>Осталось 30 дней</h3>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Клиент</th><th>Адрес</th><th>Телефон</th><th>Дней до конца</th><th>Действие</th></tr></thead>
+            <tbody>
+                {% for client in notifications_30 %}
+                <tr>
+                    <td>{{ client.full_name }}</td>
+                    <td>{{ client.full_address }}</td>
+                    <td>{{ client.phone }}</td>
+                    <td>{{ client.days_until_expiry() }}</td>
+                    <td><a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not notifications_30 and not notifications_14 and not notifications_7 and not expired %}
+<div class="info-box">
+    <p>Нет активных оповещений. Все договоры в порядке.</p>
+</div>
+{% endif %}
+{% endblock %}

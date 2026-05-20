@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Список договоров</h2>
+
+<div class="search-box">
+    <form method="GET" action="{{ url_for('index') }}" class="search-form">
+        <input type="text" name="search" placeholder="Поиск по ЛС, ФИО, адресу или телефону..." value="{{ search_query }}" class="search-input">
+        <button type="submit" class="btn">Найти</button>
+        {% if search_query %}
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Сбросить</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>№ дог.</th>
+                <th>ЛС</th>
+                <th>ФИО</th>
+                <th>Адрес</th>
+                <th>Телефон</th>
+                <th>Период</th>
+                <th>Дней до конца</th>
+                <th>Оформил</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr class="{% if client.days_until_expiry() <= 7 %}status-danger{% elif client.days_until_expiry() <= 30 %}status-warning{% endif %}">
+                <td><strong>{{ client.contract_number }}</strong></td>
+                <td><span class="account-badge">{{ client.personal_account }}</span></td>
+                <td>{{ client.full_name }}</td>
+                <td><span class="address-badge">{{ client.full_address }}</span></td>
+                <td>{{ client.phone }}</td>
+                <td>{{ client.contract_start.strftime('%d.%m.%Y') }}<br>→<br>{{ client.contract_end.strftime('%d.%m.%Y') }}</td>
+                <td>{{ client.days_until_expiry() }} дн.</td>
+                <td>
+                    <small>
+                        {{ client.creator.full_name if client.creator else '—' }}<br>
+                        <span class="date-small">{{ client.created_at.strftime('%d.%m.%Y') if client.created_at else '' }}</span>
+                    </small>
+                </td>
+                <td>
+                    {% if client.days_until_expiry() <= 0 %}
+                        <span class="badge badge-expired">Истёк</span>
+                    {% elif client.days_until_expiry() <= 7 %}
+                        <span class="badge badge-danger">Срочно</span>
+                    {% elif client.days_until_expiry() <= 30 %}
+                        <span class="badge badge-warning">Скоро</span>
+                    {% else %}
+                        <span class="badge badge-success">Активен</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('view_contract', client_id=client.id) }}" class="btn-small btn-contract">Договор</a>
+                    <a href="{{ url_for('renew_contract', client_id=client.id) }}" class="btn-small">Продлить</a>
+                    <a href="{{ url_for('client_history', client_id=client.id) }}" class="btn-small btn-info">История</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="10" style="text-align: center;">Клиенты не найдены</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .btn-contract {
+        background-color: #8e44ad;
+    }
+    .btn-contract:hover {
+        background-color: #6c3483;
+    }
+</style>
+{% endblock %}

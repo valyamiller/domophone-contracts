@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+
+<form method="POST" class="form">
+    <div class="form-group">
+        <label for="username">Логин:</label>
+        <input type="text" id="username" name="username" value="{{ user.username if user else '' }}" {% if user %}readonly{% endif %} required>
+        {% if user %}
+        <small class="form-text">Логин нельзя изменить</small>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="full_name">ФИО:</label>
+        <input type="text" id="full_name" name="full_name" value="{{ user.full_name if user else '' }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" {% if not user %}required{% endif %}>
+        {% if user %}
+        <small class="form-text">Оставьте пустым, чтобы не менять пароль</small>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="role">Роль:</label>
+        <select id="role" name="role" required>
+            <option value="viewer" {% if user and user.role == 'viewer' %}selected{% endif %}>Наблюдатель (только просмотр)</option>
+            <option value="manager" {% if user and user.role == 'manager' %}selected{% endif %}>Менеджер (свои договоры)</option>
+            <option value="senior" {% if user and user.role == 'senior' %}selected{% endif %}>Старший менеджер (все договоры)</option>
+            <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>Администратор (полный доступ)</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>
+            <input type="checkbox" name="is_active" {% if not user or user.is_active %}checked{% endif %}>
+            Активен
+        </label>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn">Сохранить</button>
+        <a href="{{ url_for('users_list') }}" class="btn btn-secondary">Отмена</a>
+    </div>
+</form>
+{% endblock %}

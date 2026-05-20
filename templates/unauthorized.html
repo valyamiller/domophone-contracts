@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-container">
+    <h2>Доступ запрещён</h2>
+    <p>У вас недостаточно прав для просмотра этой страницы.</p>
+    <a href="{{ url_for('index') }}" class="btn">Вернуться на главную</a>
+</div>
+
+<style>
+    .error-container {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .error-container h2 {
+        color: #e74c3c;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}

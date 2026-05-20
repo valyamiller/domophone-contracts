@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Продление договора</h2>
+
+<div class="client-info">
+    <h3>Информация о клиенте</h3>
+    <p><strong>Лицевой счёт:</strong> {{ client.personal_account }}</p>
+    <p><strong>ФИО:</strong> {{ client.full_name }}</p>
+    <p><strong>Адрес:</strong> {{ client.full_address }}</p>
+    <p><strong>Телефон:</strong> {{ client.phone }}</p>
+    <p><strong>Текущий период:</strong> {{ client.contract_start.strftime('%d.%m.%Y') }} - {{ client.contract_end.strftime('%d.%m.%Y') }}</p>
+    <p><strong>Дней до окончания:</strong> {{ client.days_until_expiry() }}</p>
+    <p><strong>Договор оформил:</strong> {{ client.creator.full_name if client.creator else '—' }} ({{ client.created_at.strftime('%d.%m.%Y %H:%M') if client.created_at else '' }})</p>
+</div>
+
+<form method="POST" class="form">
+    <div class="form-group">
+        <label for="payment_date">Дата оплаты:</label>
+        <input type="date" id="payment_date" name="payment_date" value="{{ datetime.now().date().isoformat() }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="amount">Сумма оплаты (руб):</label>
+        <input type="number" id="amount" name="amount" step="0.01" value="0">
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn">Продлить договор</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+    </div>
+</form>
+
+<div class="info-box">
+    <h4>Система продления:</h4>
+    <ul>
+        <li>Если оплата произведена после окончания договора - новый период начнётся с даты оплаты</li>
+        <li>Если оплата произведена до окончания договора - период продлевается на 12 месяцев от текущей даты окончания</li>
+        <li>Ранее оплаченный период сохраняется и не теряется</li>
+    </ul>
+</div>
+{% endblock %}

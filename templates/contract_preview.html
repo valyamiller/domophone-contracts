@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Договор №{{ client.contract_number }}</h2>
+
+<div class="contract-info">
+    <div class="info-card">
+        <h3>Информация о договоре</h3>
+        <table class="info-table">
+            <tr>
+                <td class="label">Номер договора:</td>
+                <td class="value"><strong>{{ client.contract_number }}</strong></td>
+            </tr>
+            <tr>
+                <td class="label">Лицевой счёт:</td>
+                <td class="value">{{ client.personal_account }}</td>
+            </tr>
+            <tr>
+                <td class="label">ФИО абонента:</td>
+                <td class="value">{{ client.full_name }}</td>
+            </tr>
+            <tr>
+                <td class="label">Адрес установки:</td>
+                <td class="value">{{ client.full_address }}</td>
+            </tr>
+            <tr>
+                <td class="label">Телефон:</td>
+                <td class="value">{{ client.phone }}</td>
+            </tr>
+            <tr>
+                <td class="label">Дата начала договора:</td>
+                <td class="value">{{ client.contract_start.strftime('%d.%m.%Y') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Дата окончания:</td>
+                <td class="value">{{ client.contract_end.strftime('%d.%m.%Y') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Стоимость обслуживания:</td>
+                <td class="value">480 рублей в год</td>
+            </tr>
+            <tr>
+                <td class="label">Дата составления:</td>
+                <td class="value">{{ datetime.now().strftime('%d.%m.%Y') }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="contract-actions">
+    <a href="{{ url_for('download_contract', client_id=client.id) }}" class="btn btn-download">
+        📄 Скачать договор (DOCX)
+    </a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Вернуться к списку</a>
+</div>
+
+<div class="info-box">
+    <h4>Информация о договоре:</h4>
+    <ul>
+        <li>Договор генерируется в формате Microsoft Word (DOCX)</li>
+        <li>После скачивания вы можете распечатать договор на принтере</li>
+        <li>Договор содержит все необходимые реквизиты сторон</li>
+        <li>Номер договора присваивается автоматически</li>
+    </ul>
+</div>
+
+<style>
+    .contract-info {
+        margin: 20px 0;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .info-card h3 {
+        margin-top: 0;
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table tr {
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .info-table td {
+        padding: 12px 8px;
+    }
+    
+    .info-table .label {
+        font-weight: 600;
+        color: #7f8c8d;
+        width: 200px;
+    }
+    
+    .info-table .value {
+        color: #2c3e50;
+    }
+    
+    .contract-actions {
+        margin: 30px 0;
+        display: flex;
+        gap: 15px;
+    }
+    
+    .btn-download {
+        background: #27ae60;
+    }
+    
+    .btn-download:hover {
+        background: #219a52;
+    }
+</style>
+{% endblock %}
