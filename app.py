@@ -331,6 +331,69 @@ def setup():
     
     return "✅ Администратор создан!<br>Логин: admin<br>Пароль: admin123<br><br><a href='/login'>Перейти к входу</a>"
 
+@app.route('/setup')
+def setup():
+    from models import User
+    
+    # Проверяем, есть ли уже администратор
+    admin = User.query.filter_by(role='admin').first()
+    if admin:
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Настройка</title>
+            <style>
+                body {{ font-family: Arial; margin: 50px; text-align: center; }}
+                .success {{ color: orange; }}
+                .btn {{ background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <h1>⚠️ Администратор уже существует</h1>
+            <p>Логин: <strong>{admin.username}</strong></p>
+            <p><a href='/login' class='btn'>Перейти к входу</a></p>
+        </body>
+        </html>
+        """
+    
+    # Создаём администратора
+    admin = User()
+    admin.username = 'admin'
+    admin.full_name = 'Администратор'
+    admin.role = 'admin'
+    admin.is_active = True
+    admin.set_password('admin123')
+    
+    db.session.add(admin)
+    db.session.commit()
+    
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Настройка завершена</title>
+        <style>
+            body { font-family: Arial; margin: 50px; text-align: center; }
+            .success { color: green; }
+            .info { background: #e8f4fd; padding: 20px; border-radius: 10px; display: inline-block; text-align: left; margin-top: 20px; }
+            .btn { background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
+        </style>
+    </head>
+    <body>
+        <h1 class="success">✅ Администратор успешно создан!</h1>
+        <div class="info">
+            <p><strong>Логин:</strong> admin</p>
+            <p><strong>Пароль:</strong> admin123</p>
+        </div>
+        <br>
+        <a href="/login" class="btn">Перейти к входу</a>
+    </body>
+    </html>
+    """
+
 @app.route('/reports/filtered')
 @login_required
 def reports_filtered():

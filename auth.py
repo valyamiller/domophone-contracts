@@ -11,7 +11,8 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    return render_template('unauthorized.html'), 401
+    flash('Пожалуйста, авторизуйтесь для доступа к этой странице', 'warning')
+    return redirect(url_for('login'))
 
 def init_auth(app):
     login_manager.init_app(app)
@@ -26,9 +27,10 @@ def role_required(role_name):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if not current_user.is_authenticated:
+                flash('Пожалуйста, авторизуйтесь', 'warning')
                 return redirect(url_for('login'))
             if not current_user.has_role(role_name):
-                flash('У вас нет прав для доступа к этой странице', 'danger')
+                flash(f'У вас нет прав для доступа к этой странице. Ваша роль: {current_user.role}', 'danger')
                 return redirect(url_for('index'))
             return f(*args, **kwargs)
         return decorated_function
@@ -42,8 +44,12 @@ def setup_routes(app):
             return redirect(url_for('index'))
         
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
+            username = request.form.get('username')
+            password = request.form.get('password')
+            
+            if not username or not password:
+                flash('Пожалуйста, заполните все поля', 'danger')
+                return render_template('login.html')
             
             user = User.query.filter_by(username=username).first()
             
