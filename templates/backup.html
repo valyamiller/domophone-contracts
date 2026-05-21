@@ -26,7 +26,11 @@
                 <td><code>{{ backup.filename }}</code></td>
                 <td>{{ backup.created }}</td>
                 <td>{{ (backup.size / 1024 / 1024) | round(2) }} MB</td>
-                <td>
+                <td class="actions">
+                    <a href="{{ url_for('download_backup_route', filename=backup.filename) }}" 
+                       class="btn-small btn-success">
+                        📥 Скачать
+                    </a>
                     <a href="{{ url_for('restore_backup_route', filename=backup.filename) }}" 
                        class="btn-small btn-warning"
                        onclick="return confirm('Восстановить базу данных из бэкапа {{ backup.filename }}?\n\nВНИМАНИЕ! Все текущие данные будут заменены!')">
@@ -47,10 +51,11 @@
 <div class="info-box">
     <h4>Информация о бэкапах:</h4>
     <ul>
+        <li>📥 Скачать - сохранить бэкап на компьютер</li>
+        <li>🔄 Восстановить - заменить все данные из бэкапа</li>
+        <li>🗑️ Удалить - удалить файл бэкапа</li>
         <li>Бэкапы хранятся в папке <code>backups/</code></li>
-        <li>Восстановление заменит все текущие данные</li>
         <li>Рекомендуется создавать бэкап перед важными изменениями</li>
-        <li>Дамп создаётся в формате SQL</li>
     </ul>
 </div>
 {% else %}
@@ -74,10 +79,33 @@
     
     .btn-warning {
         background-color: #f39c12;
+        color: white;
     }
     
     .btn-warning:hover {
         background-color: #e67e22;
+    }
+    
+    .btn-danger {
+        background-color: #e74c3c;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c0392b;
+    }
+    
+    .actions {
+        white-space: nowrap;
+    }
+    
+    .actions .btn-small {
+        margin: 2px;
+        display: inline-block;
+        padding: 5px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
     }
     
     code {

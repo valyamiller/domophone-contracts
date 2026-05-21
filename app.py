@@ -433,6 +433,20 @@ def reports_filtered():
     filename = f"экспорт_клиентов_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename)
 
+@app.route('/admin/backup/download/<filename>')
+@login_required
+@role_required('admin')
+def download_backup_route(filename):
+    """Скачивание файла бэкапа"""
+    from backup import get_backup_file_path
+    
+    filepath = get_backup_file_path(filename)
+    if filepath and os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True, download_name=filename)
+    else:
+        flash('❌ Файл бэкапа не найден', 'danger')
+        return redirect(url_for('admin_backup'))
+    
 @app.route('/delete_client/<int:client_id>')
 @login_required
 @role_required('admin')

@@ -1,41 +1,34 @@
 # pyright: reportMissingModuleSource=false
 # ruff: noqa
+
 import os
 import subprocess
 from datetime import datetime
-import psycopg2
 
-def get_db_connection():
-    """Получение подключения к базе данных"""
-    return psycopg2.connect(
-        host='192.168.0.5',
-        port='5432',
-        user='gen_user',
-        password='Miller1994',
-        database='default_db'
-    )
+DB_HOST = '192.168.0.5'
+DB_PORT = '5432'
+DB_USER = 'gen_user'
+DB_PASS = 'Miller1994'
+DB_NAME = 'default_db'
 
 def create_backup():
     """Создание резервной копии базы данных"""
     try:
-        # Создаём папку для бэкапов
         backup_dir = os.path.join(os.path.dirname(__file__), 'backups')
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
         
-        # Имя файла с датой
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         backup_file = os.path.join(backup_dir, f'backup_{timestamp}.sql')
         
-        # Создаём дамп через pg_dump
-        cmd = f'PGPASSWORD=Miller1994 pg_dump -h 192.168.0.5 -p 5432 -U gen_user -d default_db > {backup_file}'
+        cmd = f'PGPASSWORD={DB_PASS} pg_dump -h {DB_HOST} -p {DB_PORT} -U {DB_USER} -d {DB_NAME} > {backup_file}'
         subprocess.run(cmd, shell=True, executable='/bin/bash', check=True)
         
-        # Сохраняем информацию о бэкапе
         backup_info = {
             'file': backup_file,
             'timestamp': timestamp,
-            'size': os.path.getsize(backup_file)
+            'size': os.path.getsize(backup_file),
+            'filename': f'backup_{timestamp}.sql'
         }
         
         return backup_info, None
@@ -51,8 +44,7 @@ def restore_backup(backup_filename):
         if not os.path.exists(backup_file):
             return False, "Файл бэкапа не найден"
         
-        # Восстанавливаем через psql
-        cmd = f'PGPASSWORD=Miller1994 psql -h 192.168.0.5 -p 5432 -U gen_user -d default_db < {backup_file}'
+        cmd = f'PGPASSWORD={DB_PASS} psql -h {DB_HOST} -p {DB_PORT} -U {DB_USER} -d {DB_NAME} < {backup_file}'
         subprocess.run(cmd, shell=True, executable='/bin/bash', check=True)
         
         return True, "База данных успешно восстановлена"
@@ -76,7 +68,6 @@ def get_backups_list():
                 'created': datetime.fromtimestamp(stat.st_ctime).strftime('%d.%m.%Y %H:%M:%S')
             })
     
-    # Сортируем по дате (новые сверху)
     backups.sort(key=lambda x: x['created'], reverse=True)
     return backups
 
@@ -92,3 +83,12 @@ def delete_backup(backup_filename):
         return False, "Файл не найден"
     except Exception as e:
         return False, str(e)
+
+def get_backup_file_path(backup_filename):
+    """Получение пути к файлу бэкапа для скачивания"""
+    backup_dir = os.path.join(os.path.dirname(__file__), 'backups')
+    backup_file = os.path.join(backup_dir, backup_filename)
+    
+    if os.path.exists(backup_file):
+        return backup_file
+    return None
