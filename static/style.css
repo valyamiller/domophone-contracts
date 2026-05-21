@@ -506,3 +506,7 @@ input[type="number"] {
 .btn-danger:hover {
     background-color: #c0392b;
 }
+.badge-secondary {
+    background-color: #95a5a6;
+    color: white;
+}

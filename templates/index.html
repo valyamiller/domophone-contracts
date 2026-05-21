@@ -47,13 +47,13 @@
                     </small>
                 </td>
                 <td>
-                    <td>
-            {% if client.tube_installed %}
-                <span class="badge badge-success">✅</span>
-            {% else %}
-                <span class="badge badge-secondary">❌</span>
-            {% endif %}
-        </td>
+                    {% if client.tube_installed %}
+                        <span class="badge badge-success">✅</span>
+                    {% else %}
+                        <span class="badge badge-secondary">❌</span>
+                    {% endif %}
+                </td>
+                <td>
                     {% if client.days_until_expiry() <= 0 %}
                         <span class="badge badge-expired">Истёк</span>
                     {% elif client.days_until_expiry() <= 7 %}
@@ -79,7 +79,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="10" style="text-align: center;">Клиенты не найдены</td>
+                <td colspan="11" style="text-align: center;">Клиенты не найдены</td>
             </tr>
             {% endfor %}
         </tbody>
