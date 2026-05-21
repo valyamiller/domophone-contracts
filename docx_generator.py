@@ -4,6 +4,8 @@
 import os
 from datetime import datetime
 from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 def generate_contract(client, amount=480):
     """Генерация договора из шаблона Word"""
@@ -40,17 +42,37 @@ def generate_contract(client, amount=480):
         '{installation_clause}': installation_clause
     }
     
+    # Определяем стиль для единообразия
+    base_style = None
+    for paragraph in doc.paragraphs:
+        if '3.1.' in paragraph.text:
+            base_style = paragraph.style
+            break
+    
     for paragraph in doc.paragraphs:
         for key, value in replacements.items():
             if key in paragraph.text:
                 paragraph.text = paragraph.text.replace(key, value)
+                # Применяем единый стиль
+                if base_style:
+                    paragraph.style = base_style
+                # Устанавливаем шрифт Times New Roman, 14pt
+                for run in paragraph.runs:
+                    run.font.name = 'Times New Roman'
+                    run.font.size = Pt(14)
     
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
-                for key, value in replacements.items():
-                    if key in cell.text:
-                        cell.text = cell.text.replace(key, value)
+                for paragraph in cell.paragraphs:
+                    for key, value in replacements.items():
+                        if key in paragraph.text:
+                            paragraph.text = paragraph.text.replace(key, value)
+                            if base_style:
+                                paragraph.style = base_style
+                            for run in paragraph.runs:
+                                run.font.name = 'Times New Roman'
+                                run.font.size = Pt(14)
     
     contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
     if not os.path.exists(contracts_dir):
