@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>💾 Резервное копирование базы данных</h2>
+
+<div class="backup-actions">
+    <a href="{{ url_for('create_backup_route') }}" class="btn btn-success">
+        ➕ Создать новый бэкап
+    </a>
+</div>
+
+{% if backups %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Файл бэкапа</th>
+                <th>Дата создания</th>
+                <th>Размер</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for backup in backups %}
+            <tr>
+                <td><code>{{ backup.filename }}</code></td>
+                <td>{{ backup.created }}</td>
+                <td>{{ (backup.size / 1024 / 1024) | round(2) }} MB</td>
+                <td>
+                    <a href="{{ url_for('restore_backup_route', filename=backup.filename) }}" 
+                       class="btn-small btn-warning"
+                       onclick="return confirm('Восстановить базу данных из бэкапа {{ backup.filename }}?\n\nВНИМАНИЕ! Все текущие данные будут заменены!')">
+                        🔄 Восстановить
+                    </a>
+                    <a href="{{ url_for('delete_backup_route', filename=backup.filename) }}" 
+                       class="btn-small btn-danger"
+                       onclick="return confirm('Удалить бэкап {{ backup.filename }}?')">
+                        🗑️ Удалить
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="info-box">
+    <h4>Информация о бэкапах:</h4>
+    <ul>
+        <li>Бэкапы хранятся в папке <code>backups/</code></li>
+        <li>Восстановление заменит все текущие данные</li>
+        <li>Рекомендуется создавать бэкап перед важными изменениями</li>
+        <li>Дамп создаётся в формате SQL</li>
+    </ul>
+</div>
+{% else %}
+<div class="info-box">
+    <p>Нет доступных бэкапов. Создайте первый бэкап с помощью кнопки выше.</p>
+</div>
+{% endif %}
+
+<style>
+    .backup-actions {
+        margin-bottom: 20px;
+    }
+    
+    .btn-success {
+        background-color: #27ae60;
+    }
+    
+    .btn-success:hover {
+        background-color: #219a52;
+    }
+    
+    .btn-warning {
+        background-color: #f39c12;
+    }
+    
+    .btn-warning:hover {
+        background-color: #e67e22;
+    }
+    
+    code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+</style>
+{% endblock %}

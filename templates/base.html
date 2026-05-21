@@ -40,6 +40,9 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+        {% if current_user.has_role('admin') %}
+    <a href="{{ url_for('admin_backup') }}">💾 Бэкапы</a>
+{% endif %}
         
         <main>
             {% block content %}{% endblock %}

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import os
+from backup import create_backup, restore_backup, get_backups_list, delete_backup
 
 print("=== ЗАПУСК ПРИЛОЖЕНИЯ ===")
 
@@ -59,7 +60,57 @@ with app.app_context():
 setup_routes(app)
 
 print("=== МАРШРУТЫ НАСТРОЕНЫ ===")
+@app.route('/admin/backup')
+@login_required
+@role_required('admin')
+def admin_backup():
+    """Страница управления бэкапами"""
+    backups = get_backups_list()
+    return render_template('backup.html', backups=backups, datetime=datetime)
 
+@app.route('/admin/backup/create')
+@login_required
+@role_required('admin')
+def create_backup_route():
+    """Создание нового бэкапа"""
+    backup_info, error = create_backup()
+    
+    if error:
+        flash(f'❌ Ошибка создания бэкапа: {error}', 'danger')
+    else:
+        size_mb = backup_info['size'] / 1024 / 1024
+        flash(f'✅ Бэкап создан: {backup_info["timestamp"]} (размер: {size_mb:.2f} MB)', 'success')
+    
+    return redirect(url_for('admin_backup'))
+
+@app.route('/admin/backup/restore/<filename>')
+@login_required
+@role_required('admin')
+def restore_backup_route(filename):
+    """Восстановление из бэкапа"""
+    success, message = restore_backup(filename)
+    
+    if success:
+        flash(f'✅ {message}', 'success')
+        flash('⚠️ Страница будет перезагружена. Войдите заново.', 'warning')
+    else:
+        flash(f'❌ Ошибка восстановления: {message}', 'danger')
+    
+    return redirect(url_for('admin_backup'))
+
+@app.route('/admin/backup/delete/<filename>')
+@login_required
+@role_required('admin')
+def delete_backup_route(filename):
+    """Удаление файла бэкапа"""
+    success, message = delete_backup(filename)
+    
+    if success:
+        flash(f'✅ {message}', 'success')
+    else:
+        flash(f'❌ {message}', 'danger')
+    
+    return redirect(url_for('admin_backup'))
 # Health check
 @app.route('/health')
 def health():
