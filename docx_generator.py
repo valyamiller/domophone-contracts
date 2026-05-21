@@ -1,5 +1,6 @@
 # pyright: reportMissingImports=false
 # ruff: noqa
+
 import os
 from datetime import datetime
 from docx import Document
@@ -18,11 +19,15 @@ def generate_contract(client, amount=480):
     start_date = client.contract_start.strftime('%d.%m.%Y')
     end_date = client.contract_end.strftime('%d.%m.%Y')
     
+    # Формируем пункт о монтаже только если трубка установлена
+    installation_clause = ""
+    if client.tube_installed:
+        installation_clause = "3.2. Плата за монтаж абонентского устройства (АУ) составляет с одной квартиры, 3000 (три тысячи) рублей 00 коп."
+    
     replacements = {
         '{microdistrict}': client.microdistrict,
         '{house}': client.house,
         '{apartment}': client.apartment,
-        '{full_address}': client.full_address,  # Полный адрес
         '{full_name}': client.full_name,
         '{phone}': client.phone,
         '{current_date}': current_date,
@@ -31,7 +36,8 @@ def generate_contract(client, amount=480):
         '{amount}': str(amount),
         '{amount_text}': 'четыреста восемьдесят',
         '{personal_account}': client.personal_account,
-        '{contract_number}': str(client.contract_number)
+        '{contract_number}': str(client.contract_number),
+        '{installation_clause}': installation_clause
     }
     
     for paragraph in doc.paragraphs:
