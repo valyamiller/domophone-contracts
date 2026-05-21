@@ -21,11 +21,15 @@ def generate_contract(client, amount=480):
     start_date = client.contract_start.strftime('%d.%m.%Y')
     end_date = client.contract_end.strftime('%d.%m.%Y')
     
+    # Полный адрес
+    full_address = f"{client.microdistrict}-{client.house}-{client.apartment}"
+    
     # Формируем пункт о монтаже только если трубка установлена
     installation_clause = ""
     if client.tube_installed:
         installation_clause = "3.2. Плата за монтаж абонентского устройства (АУ) составляет с одной квартиры, 3000 (три тысячи) рублей 00 коп."
     
+    # Все замены
     replacements = {
         '{microdistrict}': client.microdistrict,
         '{house}': client.house,
@@ -39,28 +43,42 @@ def generate_contract(client, amount=480):
         '{amount_text}': 'четыреста восемьдесят',
         '{personal_account}': client.personal_account,
         '{contract_number}': str(client.contract_number),
-        '{installation_clause}': installation_clause
+        '{installation_clause}': installation_clause,
+        '{full_address}': full_address,  # Добавляем полный адрес
     }
     
-    # Определяем стиль для единообразия
+    # Определяем базовый стиль из существующего текста
     base_style = None
+    base_font_name = 'Times New Roman'
+    base_font_size = Pt(14)
+    
+    # Ищем образец стиля
     for paragraph in doc.paragraphs:
-        if '3.1.' in paragraph.text:
+        if 'Договор' in paragraph.text or '1.1.' in paragraph.text:
             base_style = paragraph.style
+            if paragraph.runs:
+                base_font_name = paragraph.runs[0].font.name or 'Times New Roman'
+                base_font_size = paragraph.runs[0].font.size or Pt(14)
             break
     
+    # Заменяем текст во всех параграфах
     for paragraph in doc.paragraphs:
+        text_changed = False
         for key, value in replacements.items():
             if key in paragraph.text:
                 paragraph.text = paragraph.text.replace(key, value)
-                # Применяем единый стиль
-                if base_style:
-                    paragraph.style = base_style
-                # Устанавливаем шрифт Times New Roman, 14pt
-                for run in paragraph.runs:
-                    run.font.name = 'Times New Roman'
-                    run.font.size = Pt(14)
+                text_changed = True
+        
+        # Применяем единый стиль ко всем параграфам
+        if base_style:
+            paragraph.style = base_style
+        
+        # Применяем шрифт ко всем runs
+        for run in paragraph.runs:
+            run.font.name = base_font_name
+            run.font.size = base_font_size
     
+    # Заменяем текст в таблицах
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
@@ -68,12 +86,15 @@ def generate_contract(client, amount=480):
                     for key, value in replacements.items():
                         if key in paragraph.text:
                             paragraph.text = paragraph.text.replace(key, value)
-                            if base_style:
-                                paragraph.style = base_style
-                            for run in paragraph.runs:
-                                run.font.name = 'Times New Roman'
-                                run.font.size = Pt(14)
+                    
+                    # Применяем стиль и шрифт
+                    if base_style:
+                        paragraph.style = base_style
+                    for run in paragraph.runs:
+                        run.font.name = base_font_name
+                        run.font.size = base_font_size
     
+    # Сохраняем договор
     contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
     if not os.path.exists(contracts_dir):
         os.makedirs(contracts_dir)
