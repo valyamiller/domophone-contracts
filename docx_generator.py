@@ -4,8 +4,6 @@
 import os
 from datetime import datetime
 from docx import Document
-from docx.shared import Pt
-from docx.enum.style import WD_STYLE_TYPE
 
 def generate_contract(client, amount=480):
     """Генерация договора из шаблона Word"""
@@ -24,12 +22,7 @@ def generate_contract(client, amount=480):
     # Полный адрес
     full_address = f"{client.microdistrict}-{client.house}-{client.apartment}"
     
-    # Формируем пункт о монтаже только если трубка установлена
-    installation_clause = ""
-    if client.tube_installed:
-        installation_clause = "3.2. Плата за монтаж абонентского устройства (АУ) составляет с одной квартиры, 3000 (три тысячи) рублей 00 коп."
-    
-    # Все замены
+    # Базовые замены
     replacements = {
         '{microdistrict}': client.microdistrict,
         '{house}': client.house,
@@ -43,74 +36,51 @@ def generate_contract(client, amount=480):
         '{amount_text}': 'четыреста восемьдесят',
         '{personal_account}': client.personal_account,
         '{contract_number}': str(client.contract_number),
-        '{installation_clause}': installation_clause,
         '{full_address}': full_address,
     }
     
-    # Создаём или получаем единый стиль для всего документа
-    try:
-        # Пробуем получить существующий стиль
-        normal_style = doc.styles['Normal']
-    except KeyError:
-        # Создаём новый стиль
-        normal_style = doc.styles.add_style('CustomNormal', WD_STYLE_TYPE.PARAGRAPH)
-    
-    # Настраиваем шрифт для стиля
-    normal_style.font.name = 'Times New Roman'
-    normal_style.font.size = Pt(14)
-    
-    # Заменяем текст во всех параграфах и применяем стиль
+    # Заменяем текст во всех параграфах
     for paragraph in doc.paragraphs:
-        # Заменяем текст
         for key, value in replacements.items():
             if key in paragraph.text:
                 paragraph.text = paragraph.text.replace(key, value)
-        
-        # Применяем единый стиль ко всем параграфам
-        paragraph.style = normal_style
-        
-        # Для каждой части текста принудительно устанавливаем шрифт
-        for run in paragraph.runs:
-            run.font.name = 'Times New Roman'
-            run.font.size = Pt(14)
     
-    # Обрабатываем таблицы
+    # Заменяем текст в таблицах
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    # Заменяем текст
-                    for key, value in replacements.items():
-                        if key in paragraph.text:
-                            paragraph.text = paragraph.text.replace(key, value)
-                    
-                    # Применяем стиль
-                    paragraph.style = normal_style
-                    
-                    # Устанавливаем шрифт
-                    for run in paragraph.runs:
-                        run.font.name = 'Times New Roman'
-                        run.font.size = Pt(14)
+                for key, value in replacements.items():
+                    if key in cell.text:
+                        cell.text = cell.text.replace(key, value)
     
-    # Если трубка НЕ установлена - перенумеровываем пункты
-    if not client.tube_installed:
-        # Словарь для замены номеров пунктов
-        renumber_map = [
-            ('3.3.', '3.2.'),
-            ('3.4.', '3.3.'),
-            ('3.5.', '3.4.'),
-        ]
-        
+    # Обработка пункта 3.2 (монтаж)
+    if client.tube_installed:
+        # Вставляем пункт 3.2
         for paragraph in doc.paragraphs:
-            for old, new in renumber_map:
-                if old in paragraph.text:
-                    paragraph.text = paragraph.text.replace(old, new)
-            
-            # Снова применяем стиль после замены
-            paragraph.style = normal_style
-            for run in paragraph.runs:
-                run.font.name = 'Times New Roman'
-                run.font.size = Pt(14)
+            if '3.1.' in paragraph.text:
+                # Находим позицию после 3.1
+                idx = doc.paragraphs.index(paragraph)
+                # Вставляем новый пункт
+                new_para = doc.paragraphs[idx+1].insert_paragraph_before(
+                    "3.2. Плата за монтаж абонентского устройства (АУ) составляет с одной квартиры, 3000 (три тысячи) рублей 00 коп."
+                )
+                break
+    else:
+        # Удаляем пункт 3.2 если он есть
+        for paragraph in doc.paragraphs:
+            if '3.2.' in paragraph.text:
+                p = paragraph._element
+                p.getparent().remove(p)
+                break
+        
+        # Перенумеровываем последующие пункты
+        for paragraph in doc.paragraphs:
+            if '3.3.' in paragraph.text:
+                paragraph.text = paragraph.text.replace('3.3.', '3.2.')
+            elif '3.4.' in paragraph.text:
+                paragraph.text = paragraph.text.replace('3.4.', '3.3.')
+            elif '3.5.' in paragraph.text:
+                paragraph.text = paragraph.text.replace('3.5.', '3.4.')
     
     # Сохраняем договор
     contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
