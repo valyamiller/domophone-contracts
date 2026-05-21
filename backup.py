@@ -2,7 +2,7 @@
 # ruff: noqa
 
 import os
-import subprocess
+import psycopg2
 from datetime import datetime
 
 DB_HOST = '192.168.0.5'
@@ -12,7 +12,7 @@ DB_PASS = 'Miller1994'
 DB_NAME = 'default_db'
 
 def create_backup():
-    """Создание резервной копии базы данных"""
+    """Создание резервной копии базы данных через Python"""
     try:
         backup_dir = os.path.join(os.path.dirname(__file__), 'backups')
         if not os.path.exists(backup_dir):
@@ -21,8 +21,68 @@ def create_backup():
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         backup_file = os.path.join(backup_dir, f'backup_{timestamp}.sql')
         
-        cmd = f'PGPASSWORD={DB_PASS} pg_dump -h {DB_HOST} -p {DB_PORT} -U {DB_USER} -d {DB_NAME} > {backup_file}'
-        subprocess.run(cmd, shell=True, executable='/bin/bash', check=True)
+        # Подключаемся к базе
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+        
+        with open(backup_file, 'w', encoding='utf-8') as f:
+            # Пишем заголовок
+            f.write(f"-- Backup created at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"-- Database: {DB_NAME}\n\n")
+            
+            # Получаем список всех таблиц
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT tablename FROM pg_tables 
+                WHERE schemaname = 'public'
+                ORDER BY tablename
+            """)
+            tables = cur.fetchall()
+            
+            # Для каждой таблицы создаём дамп
+            for table in tables:
+                table_name = table[0]
+                print(f"Бэкап таблицы: {table_name}")
+                
+                # Получаем структуру таблицы
+                cur.execute(f"""
+                    SELECT column_name, data_type, is_nullable, column_default
+                    FROM information_schema.columns 
+                    WHERE table_name = '{table_name}'
+                    ORDER BY ordinal_position
+                """)
+                columns = cur.fetchall()
+                
+                # Получаем данные
+                cur.execute(f"SELECT * FROM {table_name}")
+                rows = cur.fetchall()
+                
+                if rows:
+                    # Пишем INSERT запросы
+                    for row in rows:
+                        values = []
+                        for val in row:
+                            if val is None:
+                                values.append('NULL')
+                            elif isinstance(val, str):
+                                values.append(f"'{val.replace(chr(39), chr(39)+chr(39))}'")
+                            elif isinstance(val, datetime):
+                                values.append(f"'{val.strftime('%Y-%m-%d %H:%M:%S')}'")
+                            else:
+                                values.append(str(val))
+                        
+                        insert_sql = f"INSERT INTO {table_name} VALUES ({', '.join(values)});\n"
+                        f.write(insert_sql)
+                f.write("\n")
+            
+            cur.close()
+        
+        conn.close()
         
         backup_info = {
             'file': backup_file,
@@ -44,8 +104,24 @@ def restore_backup(backup_filename):
         if not os.path.exists(backup_file):
             return False, "Файл бэкапа не найден"
         
-        cmd = f'PGPASSWORD={DB_PASS} psql -h {DB_HOST} -p {DB_PORT} -U {DB_USER} -d {DB_NAME} < {backup_file}'
-        subprocess.run(cmd, shell=True, executable='/bin/bash', check=True)
+        # Подключаемся к базе
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+        cur = conn.cursor()
+        
+        with open(backup_file, 'r', encoding='utf-8') as f:
+            sql = f.read()
+            # Выполняем SQL запросы из бэкапа
+            cur.execute(sql)
+        
+        conn.commit()
+        cur.close()
+        conn.close()
         
         return True, "База данных успешно восстановлена"
     except Exception as e:
