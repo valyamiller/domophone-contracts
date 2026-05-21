@@ -54,33 +54,26 @@ def generate_contract(client, amount=480):
                         cell.text = cell.text.replace(key, value)
     
     # Обработка пункта 3.2 (монтаж)
-    if client.tube_installed:
-        # Вставляем пункт 3.2
-        for paragraph in doc.paragraphs:
-            if '3.1.' in paragraph.text:
-                # Находим позицию после 3.1
-                idx = doc.paragraphs.index(paragraph)
-                # Вставляем новый пункт
-                new_para = doc.paragraphs[idx+1].insert_paragraph_before(
-                    "3.2. Плата за монтаж абонентского устройства (АУ) составляет с одной квартиры, 3000 (три тысячи) рублей 00 коп."
+    for paragraph in doc.paragraphs:
+        if '{installation_clause}' in paragraph.text:
+            if client.tube_installed:
+                # Заменяем на текст пункта 3.2
+                paragraph.text = paragraph.text.replace(
+                    '{installation_clause}',
+                    '3.2. Плата за монтаж абонентского устройства (АУ) составляет с одной квартиры, 3000 (три тысячи) рублей 00 коп.'
                 )
+            else:
+                # Удаляем строку с {installation_clause}
+                paragraph.text = ""
+                # Перенумеровываем последующие пункты (3.3 → 3.2, 3.4 → 3.3, 3.5 → 3.4)
+                for p in doc.paragraphs:
+                    if '3.3.' in p.text:
+                        p.text = p.text.replace('3.3.', '3.2.')
+                    elif '3.4.' in p.text:
+                        p.text = p.text.replace('3.4.', '3.3.')
+                    elif '3.5.' in p.text:
+                        p.text = p.text.replace('3.5.', '3.4.')
                 break
-    else:
-        # Удаляем пункт 3.2 если он есть
-        for paragraph in doc.paragraphs:
-            if '3.2.' in paragraph.text:
-                p = paragraph._element
-                p.getparent().remove(p)
-                break
-        
-        # Перенумеровываем последующие пункты
-        for paragraph in doc.paragraphs:
-            if '3.3.' in paragraph.text:
-                paragraph.text = paragraph.text.replace('3.3.', '3.2.')
-            elif '3.4.' in paragraph.text:
-                paragraph.text = paragraph.text.replace('3.4.', '3.3.')
-            elif '3.5.' in paragraph.text:
-                paragraph.text = paragraph.text.replace('3.5.', '3.4.')
     
     # Сохраняем договор
     contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
