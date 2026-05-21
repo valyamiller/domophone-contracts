@@ -11,29 +11,34 @@
 
 <div class="table-container">
     <table>
-        <thead>
-            <tr>
-                <th>Дата оплаты</th>
-                <th>Сумма</th>
-                <th>Период с</th>
-                <th>Период по</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for payment in payments %}
-            <tr>
-                <td>{{ payment.payment_date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ payment.payment_amount }} руб.</td>
-                <td>{{ payment.period_from.strftime('%d.%m.%Y') }}</td>
-                <td>{{ payment.period_to.strftime('%d.%m.%Y') }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4">Нет записей об оплатах</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <thead>
+        <tr>
+            <th>Дата оплаты</th>
+            <th>Сумма</th>
+            <th>Период с</th>
+            <th>Период по</th>
+            <th>Установка трубки</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for payment in payments %}
+        <tr>
+            <td>{{ payment.payment_date.strftime('%d.%m.%Y') }}</td>
+            <td>{{ payment.payment_amount }} руб.</td>
+            <td>{{ payment.period_from.strftime('%d.%m.%Y') }}</td>
+            <td>{{ payment.period_to.strftime('%d.%m.%Y') }}</td>
+            <td>
+                {% if payment.tube_installed %}
+                    <span class="badge badge-success">✅ Установлена</span>
+                    <small>({{ payment.payment_date.strftime('%d.%m.%Y') }})</small>
+                {% else %}
+                    <span class="badge badge-secondary">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 </div>
 
 <a href="{{ url_for('index') }}" class="btn">Назад</a>

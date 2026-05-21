@@ -25,6 +25,7 @@
                 <th>Период</th>
                 <th>Дней до конца</th>
                 <th>Оформил</th>
+                <th>Трубка</th>
                 <th>Статус</th>
                 <th>Действия</th>
             </tr>
@@ -46,6 +47,13 @@
                     </small>
                 </td>
                 <td>
+                    <td>
+            {% if client.tube_installed %}
+                <span class="badge badge-success">✅</span>
+            {% else %}
+                <span class="badge badge-secondary">❌</span>
+            {% endif %}
+        </td>
                     {% if client.days_until_expiry() <= 0 %}
                         <span class="badge badge-expired">Истёк</span>
                     {% elif client.days_until_expiry() <= 7 %}

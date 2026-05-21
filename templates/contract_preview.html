@@ -43,6 +43,14 @@
                 <td class="label">Дата составления:</td>
                 <td class="value">{{ datetime.now().strftime('%d.%m.%Y') }}</td>
             </tr>
+             <td class="label">Установка трубки:</td>
+            <td class="value">
+                {% if client.tube_installed %}
+                    ✅ Установлена ({{ client.tube_install_date.strftime('%d.%m.%Y') if client.tube_install_date else 'дата не указана' }})
+                {% else %}
+                    ❌ Не установлена
+                {% endif %}
+            </td>
         </table>
     </div>
 </div>

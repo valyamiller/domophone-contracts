@@ -60,6 +60,7 @@ with app.app_context():
 setup_routes(app)
 
 print("=== МАРШРУТЫ НАСТРОЕНЫ ===")
+
 @app.route('/admin/backup')
 @login_required
 @role_required('admin')
@@ -111,6 +112,7 @@ def delete_backup_route(filename):
         flash(f'❌ {message}', 'danger')
     
     return redirect(url_for('admin_backup'))
+
 # Health check
 @app.route('/health')
 def health():
@@ -152,6 +154,8 @@ def add_client():
         phone = request.form['phone']
         start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
         
+        tube_installed = request.form.get('tube_installed') == 'true'
+        
         client = Client()
         client.contract_number = Client.generate_contract_number()
         client.personal_account = Client.generate_personal_account()
@@ -165,6 +169,9 @@ def add_client():
         client.last_payment_date = start_date
         client.is_active = True
         client.created_by = current_user.id
+        client.tube_installed = tube_installed
+        if tube_installed:
+            client.tube_install_date = start_date
         
         db.session.add(client)
         db.session.commit()
@@ -177,7 +184,8 @@ def add_client():
                 payment_amount=amount,
                 period_from=start_date,
                 period_to=client.contract_end,
-                created_by=current_user.id
+                created_by=current_user.id,
+                tube_installed=tube_installed
             )
             db.session.add(history)
             db.session.commit()
@@ -229,8 +237,13 @@ def renew_contract(client_id):
     if request.method == 'POST':
         payment_date = datetime.strptime(request.form['payment_date'], '%Y-%m-%d').date()
         payment_amount = request.form.get('amount', 480, type=float)
+        tube_installed = request.form.get('tube_installed') == 'true'
         
         old_end = client.contract_end
+        
+        if tube_installed:
+            client.tube_installed = True
+            client.tube_install_date = payment_date
         
         client.renew_contract(payment_date)
         client.updated_by = current_user.id
@@ -243,7 +256,8 @@ def renew_contract(client_id):
                 payment_amount=payment_amount,
                 period_from=payment_date if payment_date > old_end else old_end,
                 period_to=client.contract_end,
-                created_by=current_user.id
+                created_by=current_user.id,
+                tube_installed=tube_installed
             )
             db.session.add(history)
             db.session.commit()
@@ -418,6 +432,7 @@ def reports_filtered():
     
     filename = f"экспорт_клиентов_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename)
+
 @app.route('/delete_client/<int:client_id>')
 @login_required
 @role_required('admin')
@@ -425,18 +440,13 @@ def delete_client(client_id):
     """Удаление клиента (только для администраторов)"""
     client = Client.query.get_or_404(client_id)
     
-    # Сохраняем имя для сообщения
     client_name = client.full_name
     client_number = client.contract_number
     
     try:
-        # Удаляем историю платежей
         PaymentHistory.query.filter_by(client_id=client.id).delete()
-        
-        # Удаляем клиента
         db.session.delete(client)
         db.session.commit()
-        
         flash(f'✅ Клиент {client_name} (договор №{client_number}) удалён', 'success')
     except Exception as e:
         db.session.rollback()

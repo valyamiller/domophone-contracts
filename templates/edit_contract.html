@@ -28,6 +28,13 @@
     <div class="form-group">
         <button type="submit" class="btn">Продлить договор</button>
         <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+        <div class="form-group">
+    <label>
+        <input type="checkbox" name="tube_installed" value="true">
+        📞 Установка новой трубки
+    </label>
+    <small class="form-text">Отметьте, если при продлении была установлена новая трубка</small>
+</div>
     </div>
 </form>
 

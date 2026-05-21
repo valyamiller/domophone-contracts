@@ -87,6 +87,7 @@ class Client(db.Model):
     last_payment_date = db.Column(db.Date, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     
+    
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -94,6 +95,8 @@ class Client(db.Model):
     
     creator = db.relationship('User', foreign_keys=[created_by], backref='created_contracts')
     updater = db.relationship('User', foreign_keys=[updated_by], backref='updated_contracts')
+    tube_installed = db.Column(db.Boolean, default=False)  # Установлена ли трубка
+    tube_install_date = db.Column(db.Date, nullable=True)   # Дата установки трубки
     
     @property
     def full_address(self):
@@ -162,3 +165,4 @@ class PaymentHistory(db.Model):
     
     client = db.relationship('Client', backref=db.backref('payments', lazy=True))
     creator = db.relationship('User', backref='payments')
+    tube_installed = db.Column(db.Boolean, default=False)  # Была ли установка трубки при этой оплате
