@@ -5,7 +5,6 @@ import os
 from datetime import datetime
 from docx import Document
 from docx.shared import Pt
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 def generate_contract(client, amount=480):
     """Генерация договора из шаблона Word"""
@@ -44,39 +43,19 @@ def generate_contract(client, amount=480):
         '{personal_account}': client.personal_account,
         '{contract_number}': str(client.contract_number),
         '{installation_clause}': installation_clause,
-        '{full_address}': full_address,  # Добавляем полный адрес
+        '{full_address}': full_address,
     }
-    
-    # Определяем базовый стиль из существующего текста
-    base_style = None
-    base_font_name = 'Times New Roman'
-    base_font_size = Pt(14)
-    
-    # Ищем образец стиля
-    for paragraph in doc.paragraphs:
-        if 'Договор' in paragraph.text or '1.1.' in paragraph.text:
-            base_style = paragraph.style
-            if paragraph.runs:
-                base_font_name = paragraph.runs[0].font.name or 'Times New Roman'
-                base_font_size = paragraph.runs[0].font.size or Pt(14)
-            break
     
     # Заменяем текст во всех параграфах
     for paragraph in doc.paragraphs:
-        text_changed = False
         for key, value in replacements.items():
             if key in paragraph.text:
                 paragraph.text = paragraph.text.replace(key, value)
-                text_changed = True
         
-        # Применяем единый стиль ко всем параграфам
-        if base_style:
-            paragraph.style = base_style
-        
-        # Применяем шрифт ко всем runs
+        # Применяем стиль
         for run in paragraph.runs:
-            run.font.name = base_font_name
-            run.font.size = base_font_size
+            run.font.name = 'Times New Roman'
+            run.font.size = Pt(14)
     
     # Заменяем текст в таблицах
     for table in doc.tables:
@@ -86,13 +65,29 @@ def generate_contract(client, amount=480):
                     for key, value in replacements.items():
                         if key in paragraph.text:
                             paragraph.text = paragraph.text.replace(key, value)
-                    
-                    # Применяем стиль и шрифт
-                    if base_style:
-                        paragraph.style = base_style
                     for run in paragraph.runs:
-                        run.font.name = base_font_name
-                        run.font.size = base_font_size
+                        run.font.name = 'Times New Roman'
+                        run.font.size = Pt(14)
+    
+    # Если трубка НЕ установлена - удаляем пункт 3.2 и перенумеровываем
+    if not client.tube_installed:
+        # Удаляем строку с пунктом 3.2
+        for paragraph in doc.paragraphs:
+            if '3.2.' in paragraph.text and 'монтаж' in paragraph.text.lower():
+                paragraph.text = ""
+                # Помечаем на удаление (очищаем текст)
+        
+        # Перенумеровываем последующие пункты
+        renumber_map = [
+            ('3.3.', '3.2.'),
+            ('3.4.', '3.3.'),
+            ('3.5.', '3.4.'),
+        ]
+        
+        for paragraph in doc.paragraphs:
+            for old, new in renumber_map:
+                if old in paragraph.text:
+                    paragraph.text = paragraph.text.replace(old, new)
     
     # Сохраняем договор
     contracts_dir = os.path.join(os.path.dirname(__file__), 'contracts')
